@@ -1,26 +1,37 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import { useLocation } from "react-router-dom";
 import "./OrgChart.scss";
 
-// Define a Node type
-interface Node {
-  id: number;
-  desc: string;
-  children: Node[];
-}
+/**
+ * @typedef {Object} Node
+ * @property {number} id
+ * @property {string} desc
+ * @property {Node[]} children
+ */
 
-const OrgChart: React.FC = () => {
-  // Get the URL search parameters safely
-  const routerLocation = useLocation();
-  const locationSearch = useMemo(() => window.location.search || routerLocation.search, [routerLocation.search]);
+const OrgChart = () => {
+  // Get URL search parameters directly from window.location
+  const locationSearch = useMemo(() => window.location.search, []);
 
-  const [tree, setTree] = useState<Node | null>(null);
-  const [rootInput, setRootInput] = useState<string>("");
-  const [searchLoading, setSearchLoading] = useState<boolean>(false);
-  const [loadingNodeId, setLoadingNodeId] = useState<number | null>(null);
-  const [loadingAction, setLoadingAction] = useState<"parent" | "children" | null>(null);
-  const [expandedNodes, setExpandedNodes] = useState<{ [key: number]: boolean }>({});
-  const [autoSearch, setAutoSearch] = useState<boolean>(false); // Track if search should auto-run
+  /** @type {[Node | null, React.Dispatch<React.SetStateAction<Node | null>>]} */
+  const [tree, setTree] = useState(null);
+
+  /** @type {[string, React.Dispatch<React.SetStateAction<string>>]} */
+  const [rootInput, setRootInput] = useState("");
+
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} */
+  const [searchLoading, setSearchLoading] = useState(false);
+
+  /** @type {[number | null, React.Dispatch<React.SetStateAction<number | null>>]} */
+  const [loadingNodeId, setLoadingNodeId] = useState(null);
+
+  /** @type {["parent" | "children" | null, React.Dispatch<React.SetStateAction<"parent" | "children" | null>>]} */
+  const [loadingAction, setLoadingAction] = useState(null);
+
+  /** @type {[Record<number, boolean>, React.Dispatch<React.SetStateAction<Record<number, boolean>>>]} */
+  const [expandedNodes, setExpandedNodes] = useState({});
+
+  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} */
+  const [autoSearch, setAutoSearch] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(locationSearch);
@@ -30,40 +41,45 @@ const OrgChart: React.FC = () => {
     if (eventID) {
       setRootInput(eventID);
       if (tag === "share") {
-        setAutoSearch(true); // Set auto-search flag
+        setAutoSearch(true);
       }
     }
   }, [locationSearch]);
 
   useEffect(() => {
     if (rootInput && autoSearch) {
-      setAutoSearch(false); // Prevents infinite loop
-      setRootNode(); // Trigger the search function
+      setAutoSearch(false);
+      setRootNode();
     }
-  }, [rootInput]); // Removed autoSearch dependency
+  }, [rootInput]);
 
+  /**
+   * Set the root node
+   */
   const setRootNode = useCallback(async () => {
-    console.log("setRootNode triggered with rootInput:", rootInput); // Debugging log
+    console.log("setRootNode triggered with rootInput:", rootInput);
     if (rootInput.trim() === "") {
       alert("Please enter a valid description for the root node.");
       return;
     }
-  
+
     setSearchLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
-  
+
     setTree({
       id: Date.now(),
       desc: rootInput,
       children: [],
     });
-  
+
     setSearchLoading(false);
   }, [rootInput]);
-   // Now it has stable dependencies
-  
 
-  const addChildNodes = async (parentId: number) => {
+  /**
+   * Adds child nodes to a parent node
+   * @param {number} parentId
+   */
+  const addChildNodes = async (parentId) => {
     setLoadingNodeId(parentId);
     setLoadingAction("children");
 
@@ -74,7 +90,8 @@ const OrgChart: React.FC = () => {
       return;
     }
 
-    const newChildren: Node[] = [];
+    /** @type {Node[]} */
+    const newChildren = [];
     for (let i = 0; i < numChildren; i++) {
       const desc = prompt(`Enter description for child ${i + 1}`) || "Node";
       newChildren.push({
@@ -86,7 +103,7 @@ const OrgChart: React.FC = () => {
 
     await new Promise((resolve) => setTimeout(resolve, 1500));
 
-    const updateTree = (node: Node): Node => {
+    const updateTree = (node) => {
       if (node.id === parentId) {
         return { ...node, children: newChildren };
       }
@@ -98,26 +115,31 @@ const OrgChart: React.FC = () => {
     setLoadingAction(null);
   };
 
-  const addParentNode = async (childId: number) => {
+  /**
+   * Adds a parent node above the given child
+   * @param {number} childId
+   */
+  const addParentNode = async (childId) => {
     setLoadingNodeId(childId);
     setLoadingAction("parent");
 
     const parentDesc = prompt("Enter description for the new parent node:") || "Parent Node";
 
-    const newParent: Node = {
+    /** @type {Node} */
+    const newParent = {
       id: Date.now() + Math.random(),
       desc: parentDesc,
       children: [],
     };
 
-    const updateTree = (node: Node): Node | null => {
+    const updateTree = (node) => {
       if (node.id === childId) {
         newParent.children = [{ ...node }];
         return newParent;
       }
       return {
         ...node,
-        children: node.children.map(updateTree).filter(Boolean) as Node[],
+        children: node.children.map(updateTree).filter(Boolean),
       };
     };
 
@@ -133,46 +155,35 @@ const OrgChart: React.FC = () => {
     setLoadingAction(null);
   };
 
-  const toggleDetails = (nodeId: number) => {
+  /**
+   * Toggles details for a node
+   * @param {number} nodeId
+   */
+  const toggleDetails = (nodeId) => {
     setExpandedNodes((prev) => ({
       ...prev,
       [nodeId]: !prev[nodeId],
     }));
   };
 
-  const renderTree = (node: Node) => (
+  /**
+   * Renders the tree nodes
+   * @param {Node} node
+   */
+  const renderTree = (node) => (
     <li key={node.id} className="node-box">
-      <span data-desc={node.desc.toLowerCase()} className="node-content">
-        <button
-          className="node_button"
-          onClick={(e) => {
-            e.stopPropagation();
-            addParentNode(node.id);
-          }}
-          disabled={loadingNodeId === node.id}
-        >
+      <span className="node-content">
+        <button className="node_button" onClick={() => addParentNode(node.id)} disabled={loadingNodeId === node.id}>
           {loadingNodeId === node.id && loadingAction === "parent" ? "Please Wait..." : "Add Parent"}
         </button>
 
-        <button
-          className="node_button"
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleDetails(node.id);
-          }}
-        >
+        <button className="node_button" onClick={() => toggleDetails(node.id)}>
           {expandedNodes[node.id] ? "Hide Details" : "Show Details"}
         </button>
 
         {expandedNodes[node.id] && (
-          <div className="details fade-in" data-desc={node.desc.toLowerCase()}>
+          <div className="details fade-in">
             <table>
-              <thead>
-                <tr>
-                  <th>Property</th>
-                  <th>Value</th>
-                </tr>
-              </thead>
               <tbody>
                 <tr>
                   <td>Node ID</td>
@@ -186,14 +197,8 @@ const OrgChart: React.FC = () => {
             </table>
           </div>
         )}
-        <button
-          className="node_button"
-          onClick={(e) => {
-            e.stopPropagation();
-            addChildNodes(node.id);
-          }}
-          disabled={loadingNodeId === node.id}
-        >
+
+        <button className="node_button" onClick={() => addChildNodes(node.id)} disabled={loadingNodeId === node.id}>
           {loadingNodeId === node.id && loadingAction === "children" ? "Please Wait..." : "Add Children"}
         </button>
       </span>
@@ -211,16 +216,9 @@ const OrgChart: React.FC = () => {
           value={rootInput}
           onChange={(e) => setRootInput(e.target.value)}
           placeholder="Event ID"
-          disabled={searchLoading}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") {
-              setRootNode();
-            }
-          }}
+          onKeyDown={(e) => e.key === "Enter" && setRootNode()}
         />
-        <button onClick={setRootNode} id="search" disabled={searchLoading}>
-          {searchLoading ? "Please Wait..." : "Search"}
-        </button>
+        <button onClick={setRootNode} id="search">{searchLoading ? "Please Wait..." : "Search"}</button>
       </div>
       {tree && <ul className="tree">{renderTree(tree)}</ul>}
     </figure>
