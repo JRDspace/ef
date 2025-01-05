@@ -1,0 +1,238 @@
+.etools_eventflow {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center; // Center everything initially
+  height: 80vh;
+  padding: 1em;
+  transition: all 0.5s ease-in;
+  &.tree-visible {
+    justify-content: flex-start; // Moves input up when tree appears
+    padding-top: 20px;
+  }
+  .logo {
+    font-size: 2rem;
+    font-weight: bold;
+    color: #4285f4;
+    margin-bottom: 20px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+  }
+
+  // Input & Button Container
+  .input-container {
+    display: flex;
+    align-items: center;
+
+    width: 70%;
+    max-width: 500px;
+  }
+
+  input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px 0px 0px 5px;
+    font-size: 16px;
+    width: 1000px;
+    max-width: 350px;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease-in-out;
+
+    &:focus {
+      border-color: #4285f4;
+      outline: none;
+    }
+  }
+
+  button[id="search"] {
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 0px 5px 5px 0px;
+    cursor: pointer;
+    font-size: 16px;
+    white-space: nowrap;
+    transition: background-color 0.3s ease-in-out;
+    width: 100%;
+    &:hover {
+      background-color: #357ae8;
+    }
+  }
+  button[class="node_button"] {
+    background-color: #4285f4;
+    color: white;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 12px;
+    white-space: nowrap;
+    transition: background-color 0.3s ease-in-out;
+    width: 100%;
+    &:hover {
+      background-color: #357ae8;
+    }
+    margin: 5px auto;
+  }
+
+
+
+  .tree, .tree ul, .tree li {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    position: relative;
+  }
+
+  .loader {
+    font-size: 0.9em;
+    display: inline-block;
+    margin-top: 0.5em;
+  }
+
+  .tree {
+    margin: 0 0 1em;
+    text-align: center;
+
+    &,
+    ul {
+      display: table;
+    }
+
+    ul {
+      width: 100%;
+    }
+
+    li {
+      display: table-cell;
+      padding: 0.8em 0;
+      vertical-align: top;
+      min-width: 250px;
+
+      &:before {
+        outline: solid 1px #666;
+        content: "";
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: 0;
+      }
+
+      &:first-child:before {
+        left: 50%;
+      }
+
+      &:last-child:before {
+        right: 50%;
+      }
+    }
+
+    code,
+    span {
+      border: solid 0.1em #666;
+      border-radius: 0.2em;
+      display: inline-block;
+      margin: 0 0.2em 0.8em;
+      padding: 0.2em 0.8em;
+      position: relative;
+
+      &:before {
+        outline: solid 1px #666;
+        content: "";
+        height: 0.8em;
+        left: 50%;
+        position: absolute;
+        top: -0.85em;
+      }
+    }
+
+    ul:before {
+      outline: solid 1px #666;
+      content: "";
+      height: 0.8em;
+      left: 50%;
+      position: absolute;
+      top: -0.8em;
+    }
+
+    > li {
+      margin-top: 0;
+
+      &:before,
+      &:after,
+      > code:before,
+      > span:before {
+        outline: none;
+      }
+    }
+
+    // Dynamic styles based on data-desc
+    span[data-desc="completed"] {
+      border: 2px solid green;
+      background-color: #e6f7e6; // Light green
+    }
+
+    span[data-desc="failed"] {
+      border: 2px solid red;
+      background-color: #ffe6e6; // Light red
+    }
+
+    span[data-desc="created"] {
+      border: 2px solid blue;
+      background-color: #e6f0ff; // Light blue
+    }
+
+    span[data-desc="inprogress"] {
+      border: 2px solid orange;
+      background-color: #fff4e6; // Light orange
+    }
+
+    span[data-desc="invalid"] {
+      border: 2px solid gray;
+      background-color: #f2f2f2; // Light gray
+    }
+  }
+
+  
+  .node-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .node_button {
+    margin: 5px;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  
+  .details {
+    display: block;
+    opacity: 0;
+    max-height: 0;
+    overflow: hidden;
+    transition: opacity 0.5s ease-in-out, max-height 0.5s ease-in-out;
+  }
+  
+  .details.fade-in {
+    opacity: 1;
+    max-height: 200px;
+  }
+  
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+  }
+  
+  th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+  }
+  
+  th {
+    background-color: #f4f4f4;
+  }
+}
