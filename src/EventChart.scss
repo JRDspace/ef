@@ -1,15 +1,37 @@
 .etools_eventflow {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center; // Center everything initially
-  height: 80vh;
-  padding: 1em;
-  transition: all 0.5s ease-in;
-  &.tree-visible {
-    justify-content: flex-start; // Moves input up when tree appears
-    padding-top: 20px;
+  .mainDiv {
+
+    display: flex;
+    flex-direction: column;
+    transition: all 0.5s ease-in;
+    overflow: hidden; // Prevent full viewport overflow
+    width: max-content;
+    min-width: 100%;
   }
+
+  .inputDiv {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: white; // To prevent transparency effect
+    z-index: 10; // Ensure it stays above the tree
+    padding: 10px 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .tree-visible {
+    display: flex;
+    width: -webkit-fill-available;
+    height: 100%;
+    justify-content: center;
+    overflow-y: auto;
+    padding: 20px;
+    margin: 0 auto;
+  }
+
   .logo {
     font-size: 2rem;
     font-weight: bold;
@@ -22,8 +44,6 @@
   // Input & Button Container
   .input-container {
     display: flex;
-    align-items: center;
-
     width: 70%;
     max-width: 500px;
   }
@@ -55,10 +75,29 @@
     white-space: nowrap;
     transition: background-color 0.3s ease-in-out;
     width: 100%;
+
     &:hover {
       background-color: #357ae8;
     }
   }
+
+  .flow-start {
+    background: yellowgreen; // Elegant blue gradient
+    color: #ffffff; // White text for contrast
+    font-weight: 600; // Semi-bold for clarity
+    padding: 6px 12px;
+    border-radius: 8px;
+    display: inline-block;
+    margin-bottom: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); // Subtle shadow for depth
+    text-transform: uppercase;
+    font-size: 14px;
+    letter-spacing: 1.2px;
+    text-align: center;
+    max-width: fit-content;
+    transition: all 0.3s ease-in-out;
+  }
+
   button[class="node_button"] {
     background-color: #4285f4;
     color: white;
@@ -70,15 +109,24 @@
     white-space: nowrap;
     transition: background-color 0.3s ease-in-out;
     width: 100%;
+
     &:hover {
       background-color: #357ae8;
     }
+
     margin: 5px auto;
   }
 
+  .tree {
+    overflow-y: auto; // Ensure the tree scrolls
+    max-height: calc(100vh - 150px); // Adjust based on input height
+  }
 
 
-  .tree, .tree ul, .tree li {
+  .tree,
+  .tree ul,
+  .tree li {
+
     list-style: none;
     margin: 0;
     padding: 0;
@@ -156,13 +204,13 @@
       top: -0.8em;
     }
 
-    > li {
+    >li {
       margin-top: 0;
 
       &:before,
       &:after,
-      > code:before,
-      > span:before {
+      >code:before,
+      >span:before {
         outline: none;
       }
     }
@@ -194,19 +242,19 @@
     }
   }
 
-  
+
   .node-content {
     display: flex;
     flex-direction: column;
     align-items: center;
   }
-  
+
   .node_button {
     margin: 5px;
     padding: 6px 12px;
     cursor: pointer;
   }
-  
+
   .details {
     display: block;
     opacity: 0;
@@ -214,24 +262,25 @@
     overflow: hidden;
     transition: opacity 0.5s ease-in-out, max-height 0.5s ease-in-out;
   }
-  
+
   .details.fade-in {
     opacity: 1;
     max-height: 200px;
   }
-  
+
   table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
   }
-  
-  th, td {
+
+  th,
+  td {
     border: 1px solid #ddd;
     padding: 8px;
     text-align: left;
   }
-  
+
   th {
     background-color: #f4f4f4;
   }

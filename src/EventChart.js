@@ -1,37 +1,16 @@
 import React, { useEffect, useState, useMemo, useCallback } from "react";
-import "./OrgChart.scss";
+import "./EventChart.scss";
 
-/**
- * @typedef {Object} Node
- * @property {number} id
- * @property {string} desc
- * @property {Node[]} children
- */
-
-const OrgChart = () => {
-  // Get URL search parameters directly from window.location
+const EventChart = () => {
   const locationSearch = useMemo(() => window.location.search, []);
-
-  /** @type {[Node | null, React.Dispatch<React.SetStateAction<Node | null>>]} */
   const [tree, setTree] = useState(null);
-
-  /** @type {[string, React.Dispatch<React.SetStateAction<string>>]} */
   const [rootInput, setRootInput] = useState("");
-
-  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} */
   const [searchLoading, setSearchLoading] = useState(false);
-
-  /** @type {[number | null, React.Dispatch<React.SetStateAction<number | null>>]} */
   const [loadingNodeId, setLoadingNodeId] = useState(null);
-
-  /** @type {["parent" | "children" | null, React.Dispatch<React.SetStateAction<"parent" | "children" | null>>]} */
   const [loadingAction, setLoadingAction] = useState(null);
-
-  /** @type {[Record<number, boolean>, React.Dispatch<React.SetStateAction<Record<number, boolean>>>]} */
   const [expandedNodes, setExpandedNodes] = useState({});
-
-  /** @type {[boolean, React.Dispatch<React.SetStateAction<boolean>>]} */
   const [autoSearch, setAutoSearch] = useState(false);
+  const [firstSearchedNodeId, setFirstSearchedNodeId] = useState(null);
 
   useEffect(() => {
     const params = new URLSearchParams(locationSearch);
@@ -52,33 +31,31 @@ const OrgChart = () => {
       setRootNode();
     }
   }, [rootInput]);
-
-  /**
-   * Set the root node
-   */
   const setRootNode = useCallback(async () => {
-    console.log("setRootNode triggered with rootInput:", rootInput);
     if (rootInput.trim() === "") {
       alert("Please enter a valid description for the root node.");
       return;
     }
-
+  
     setSearchLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    setTree({
+  
+    const newTree = {
       id: Date.now(),
       desc: rootInput,
       children: [],
-    });
-
+    };
+  
+    setTree(newTree);
+  
+    // ✅ Ensure the label is always applied to the latest search result
+    setFirstSearchedNodeId(newTree.id);
+  
     setSearchLoading(false);
   }, [rootInput]);
+  
+  
 
-  /**
-   * Adds child nodes to a parent node
-   * @param {number} parentId
-   */
   const addChildNodes = async (parentId) => {
     setLoadingNodeId(parentId);
     setLoadingAction("children");
@@ -90,7 +67,6 @@ const OrgChart = () => {
       return;
     }
 
-    /** @type {Node[]} */
     const newChildren = [];
     for (let i = 0; i < numChildren; i++) {
       const desc = prompt(`Enter description for child ${i + 1}`) || "Node";
@@ -115,17 +91,12 @@ const OrgChart = () => {
     setLoadingAction(null);
   };
 
-  /**
-   * Adds a parent node above the given child
-   * @param {number} childId
-   */
   const addParentNode = async (childId) => {
     setLoadingNodeId(childId);
     setLoadingAction("parent");
 
     const parentDesc = prompt("Enter description for the new parent node:") || "Parent Node";
 
-    /** @type {Node} */
     const newParent = {
       id: Date.now() + Math.random(),
       desc: parentDesc,
@@ -155,10 +126,6 @@ const OrgChart = () => {
     setLoadingAction(null);
   };
 
-  /**
-   * Toggles details for a node
-   * @param {number} nodeId
-   */
   const toggleDetails = (nodeId) => {
     setExpandedNodes((prev) => ({
       ...prev,
@@ -166,21 +133,19 @@ const OrgChart = () => {
     }));
   };
 
-  /**
-   * Renders the tree nodes
-   * @param {Node} node
-   */
   const renderTree = (node) => (
     <li key={node.id} className="node-box">
       <span className="node-content">
+        {node.id === firstSearchedNodeId && <div className="flow-start">FLOW STARTED HERE</div>}
+  
         <button className="node_button" onClick={() => addParentNode(node.id)} disabled={loadingNodeId === node.id}>
           {loadingNodeId === node.id && loadingAction === "parent" ? "Please Wait..." : "Add Parent"}
         </button>
-
+  
         <button className="node_button" onClick={() => toggleDetails(node.id)}>
           {expandedNodes[node.id] ? "Hide Details" : "Show Details"}
         </button>
-
+  
         {expandedNodes[node.id] && (
           <div className="details fade-in">
             <table>
@@ -197,32 +162,40 @@ const OrgChart = () => {
             </table>
           </div>
         )}
-
+  
         <button className="node_button" onClick={() => addChildNodes(node.id)} disabled={loadingNodeId === node.id}>
           {loadingNodeId === node.id && loadingAction === "children" ? "Please Wait..." : "Add Children"}
         </button>
       </span>
-
+  
       {node.children.length > 0 && <ul>{node.children.map((child) => renderTree(child))}</ul>}
     </li>
   );
+  
+  
 
   return (
-    <figure className={`etools_eventflow ${tree ? "tree-visible" : ""}`}>
-      <div className="logo">EventFlow</div>
-      <div className="input-container">
-        <input
-          type="text"
-          value={rootInput}
-          onChange={(e) => setRootInput(e.target.value)}
-          placeholder="Event ID"
-          onKeyDown={(e) => e.key === "Enter" && setRootNode()}
-        />
-        <button onClick={setRootNode} id="search">{searchLoading ? "Please Wait..." : "Search"}</button>
+    <div className="etools_eventflow">
+      <div className="mainDiv">
+        <div className="inputDiv">
+          <div className="logo">EventFlow</div>
+          <div className="input-container">
+            <input
+              type="text"
+              value={rootInput}
+              onChange={(e) => setRootInput(e.target.value)}
+              placeholder="Event ID"
+              onKeyDown={(e) => e.key === "Enter" && setRootNode()}
+            />
+            <button onClick={setRootNode} id="search">{searchLoading ? "Please Wait..." : "Search"}</button>
+          </div>
+        </div>
+        <div className={`${tree ? "tree-visible" : ""}`}>
+          {tree && <ul className="tree">{renderTree(tree)}</ul>}
+        </div>
       </div>
-      {tree && <ul className="tree">{renderTree(tree)}</ul>}
-    </figure>
+    </div>
   );
 };
 
-export default OrgChart;
+export default EventChart;
